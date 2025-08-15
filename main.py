@@ -6,6 +6,7 @@ from typing import Optional
 import logging
 from nlp_utils import process_text_input
 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

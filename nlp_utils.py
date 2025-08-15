@@ -3,9 +3,13 @@ import json
 import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # OpenRouter API Configuration
-API_KEY = "sk-or-v1-your-openrouter-api-key-here"  # Replace with your actual API key
+API_KEY = os.getenv("API_KEY") # Replace with your actual API key
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL_NAME = "mistralai/mistral-small-3.2-24b-instruct:free"
 

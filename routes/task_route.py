@@ -51,26 +51,50 @@ async def chat( request: Message):
                 logger.info(f"Created task in Node backend: {resp.json()}")
 
             elif intent == "update_task":
-                
+                task_name = result.get("task_name")
+                if not task_name:
+                    raise HTTPException(status_code=400, detail="Task name required for update")
+
+                # 1. Get all tasks
+                resp = await client.get(f"{NODE_API_BASE}/tasks", timeout=10.0)
+                resp.raise_for_status()
+                tasks = resp.json()
+
+                task_to_update = next((t for t in tasks if t["name"] == task_name), None)
+                if not task_to_update:
+                    raise HTTPException(status_code=404, detail="Task not found")
+
+                task_id = task_to_update["id"]
                 payload = {
                     "name": result.get("task_name"),
                     "time": result.get("task_time"),
                     "priority": result.get("priority")
                 }
-                
-                resp = await client.put(f"{NODE_API_BASE}/tasks", json=payload, timeout=10.0)
+
+                resp = await client.put(f"{NODE_API_BASE}/tasks/{task_id}", json=payload, timeout=10.0)
                 resp.raise_for_status()
                 logger.info(f"Updated task in Node backend: {resp.json()}")
 
             elif intent == "delete_task":
                 
-                payload = {"name": result.get("task_name")}
-                resp = await client.request("DELETE", f"{NODE_API_BASE}/tasks", json=payload, timeout=10.0)
+                task_name = result.get("task_name")
+                if not task_name:
+                    raise HTTPException(status_code=400, detail="Task name required for deletion")
+
+                resp = await client.get(f"{NODE_API_BASE}/tasks", timeout=10.0)
+                resp.raise_for_status()
+                tasks = resp.json()
+
+                task_to_delete = next((t for t in tasks if t["name"] == task_name), None)
+                if not task_to_delete:
+                    raise HTTPException(status_code=404, detail="Task not found")
+
+                task_id = task_to_delete["id"]
+                resp = await client.delete(f"{NODE_API_BASE}/tasks/{task_id}", timeout=10.0)
                 resp.raise_for_status()
                 logger.info(f"Deleted task in Node backend: {resp.json()}")
 
             else:
-                # unrelated / list / prioritize etc. — optionally notify backend or skip
                 logger.info(f"No backend action required for intent: {intent}")
 
         return result
